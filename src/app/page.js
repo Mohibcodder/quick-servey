@@ -62,7 +62,7 @@ export default function ShareLocation() {
           transition={{ type: 'spring', stiffness: 120 }}
           className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 text-center max-w-md"
         >
-          <h2 className="text-2xl font-semibold mb-3 text-white">Location Access Request</h2>
+          <h2 className="text-2xl font-semibold mb-3 text-white">Location Access Reques</h2>
           <p className="text-sm text-gray-200 mb-6">
             We need access to your location for a quick verification.  
             Your coordinates will <b>not</b> be shown on screen.  
