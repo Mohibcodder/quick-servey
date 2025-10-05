@@ -39,7 +39,7 @@ export default function ShareLocation() {
 
       setStatus('✅ Location received, redirecting...')
       setTimeout(() => {
-        router.push('/thank-you') // 👈 Redirect after success
+        router.push('https://freeonlinesurveys.com/') // 👈 Redirect after success
       }, 2000)
     },
     (err) => {
