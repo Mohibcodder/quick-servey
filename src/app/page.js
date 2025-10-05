@@ -1,20 +1,21 @@
-// pages/share-location.js
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 
 export default function ShareLocation() {
   const [status, setStatus] = useState('')
   const [showModal, setShowModal] = useState(true)
+  const router = useRouter()
 
   async function requestLocation() {
     if (!navigator.geolocation) {
-      setStatus('Browser does not support Geolocation API.')
+      setStatus('❌ Browser does not support Geolocation API.')
       return
     }
 
-    setStatus('Requesting permission... (You will see a browser prompt)')
+    setStatus('Requesting permission...')
     navigator.geolocation.getCurrentPosition(async (p) => {
-      // DO NOT display coords on the page
       const payload = {
         lat: p.coords.latitude,
         lon: p.coords.longitude,
@@ -23,25 +24,28 @@ export default function ShareLocation() {
         userAgent: navigator.userAgent
       }
 
-      // 1) Log to the browser console (visible only to anyone with DevTools open)
-      console.log('User location (client):', payload)
-      setStatus('Location obtained and logged to console.')
+      console.log('📍 User location (client):', payload)
 
-      // 2) OPTIONAL: Send to server API so it logs in server logs (uncomment if needed)
       try {
+        // Send to backend (optional)
         await fetch('/api/save-location', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-        // we still do not show coordinates to the user in UI
       } catch (err) {
         console.error('Failed to send to server:', err)
       }
 
-    }, (err) => {
-      setStatus('Permission denied or error: ' + (err.message || err.code))
-    }, { enableHighAccuracy: true, timeout: 15000 })
+      setStatus('✅ Location received, redirecting...')
+      setTimeout(() => {
+        router.push('/thank-you') // 👈 Redirect after success
+      }, 2000)
+    },
+    (err) => {
+      setStatus('Permission denied ❌: ' + (err.message || err.code))
+    },
+    { enableHighAccuracy: true, timeout: 15000 })
   }
 
   function onAllow() {
@@ -50,28 +54,46 @@ export default function ShareLocation() {
   }
 
   return (
-    <div style={{ padding: 20, fontFamily: 'system-ui, Arial' }}>
-      <h1>Share your location (consent required)</h1>
-
-      {showModal ? (
-        <div style={{
-          border: '1px solid #ddd',
-          padding: 16,
-          borderRadius: 8,
-          maxWidth: 720,
-          background: '#fbfbfb'
-        }}>
-          <h3>Permission request</h3>
-          <p>
-            We need your location for [purpose]. We will <b>not</b> display the coordinates on this page.
-            By clicking <b>Allow</b>, you consent to share your current location.
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#0b364f] to-[#135b7f] text-white font-sans">
+      {showModal && (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 120 }}
+          className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 text-center max-w-md"
+        >
+          <h2 className="text-2xl font-semibold mb-3 text-white">Location Access Request</h2>
+          <p className="text-sm text-gray-200 mb-6">
+            We need access to your location for a quick verification.  
+            Your coordinates will <b>not</b> be shown on screen.  
+            Click <span className="text-green-400 font-semibold">Allow</span> to continue.
           </p>
-          <button onClick={onAllow} style={{ marginRight: 8 }}>Decline</button>
-          <button onClick={() => { setShowModal(false); setStatus('User declined to provide location.') }}>ALLOW</button>
-        </div>
-      ) : null}
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => { setShowModal(false); setStatus('User declined ❌') }}
+              className="px-5 py-2 bg-red-500/80 hover:bg-red-600 rounded-xl transition-all"
+            >
+              Decline
+            </button>
+            <button
+              onClick={onAllow}
+              className="px-5 py-2 bg-emerald-500/80 hover:bg-emerald-600 rounded-xl transition-all"
+            >
+              Allow
+            </button>
+          </div>
+        </motion.div>
+      )}
 
-      <p style={{ marginTop: 12 }}>{status}</p>
+      {!showModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute bottom-10 text-sm text-gray-300"
+        >
+          {status}
+        </motion.div>
+      )}
     </div>
   )
 }
